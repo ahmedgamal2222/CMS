@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-text: #111827;
+  --color-surface: #f9fafb;
+  --font-heading: 'Cairo', sans-serif;
+  --font-body: 'Tajawal', sans-serif;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --color-background: #0f172a;
+  --color-text: #f8fafc;
+  --color-surface: #1e293b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* RTL support */
+[dir="rtl"] .rtl\:flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Editor styles */
+.tiptap-editor {
+  min-height: 300px;
+  outline: none;
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: inline-start;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: var(--color-surface);
+  border-inline-end: 1px solid rgba(0,0,0,0.08);
+  transition: width 0.3s;
+}
+
+.admin-sidebar.collapsed {
+  width: 64px;
+}
+
+/* Card */
+.cms-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 1.5rem;
+}
+
+/* Status badge */
+.badge-draft { background: #fef3c7; color: #92400e; }
+.badge-published { background: #d1fae5; color: #065f46; }
+.badge-archived { background: #f3f4f6; color: #6b7280; }
+.badge-scheduled { background: #dbeafe; color: #1e40af; }
+
+.dark .badge-draft { background: #451a03; color: #fde68a; }
+.dark .badge-published { background: #022c22; color: #6ee7b7; }
+.dark .badge-archived { background: #1f2937; color: #9ca3af; }
