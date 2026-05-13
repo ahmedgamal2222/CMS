@@ -129,12 +129,22 @@ export const dashboardApi = {
   stats: () => api.get('/dashboard/stats'),
 };
 
-// Public API (no auth needed)
+// Page Sections
+export const sectionsApi = {
+  list: (pageId: string) => api.get(`/pages/${pageId}/sections`),
+  create: (pageId: string, data: any) => api.post(`/pages/${pageId}/sections`, data),
+  update: (pageId: string, sectionId: string, data: any) => api.put(`/pages/${pageId}/sections/${sectionId}`, data),
+  delete: (pageId: string, sectionId: string) => api.delete(`/pages/${pageId}/sections/${sectionId}`),
+  reorder: (pageId: string, order: string[]) => api.put(`/pages/${pageId}/sections/reorder`, { order }),
+};
+
+// Public APIs (no auth needed)
 export const publicApi = {
-  settings: () => axios.get(`${API_URL}/public/settings`),
-  page: (slug: string) => axios.get(`${API_URL}/public/pages/${slug}`),
-  posts: (params?: any) => axios.get(`${API_URL}/public/posts`, { params }),
-  post: (slug: string) => axios.get(`${API_URL}/public/posts/${slug}`),
-  navigation: (location: string) => axios.get(`${API_URL}/public/navigation/${location}`),
-  translations: (lang: string, ns: string) => axios.get(`${API_URL}/public/translations/${lang}/${ns}`),
+  settings: () => api.get('/public/settings'),
+  page: (slug: string) => api.get(`/public/pages/${slug}`),
+  landing: () => api.get('/public/landing'),
+  posts: (params?: any) => api.get('/public/posts', { params }),
+  post: (slug: string) => api.get(`/public/posts/${slug}`),
+  navigation: (location: string) => api.get(`/public/navigation/${location}`),
+  translations: (lang: string, ns: string) => api.get(`/public/translations/${lang}/${ns}`),
 };

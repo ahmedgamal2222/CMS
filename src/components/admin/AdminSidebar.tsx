@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/store';
 import {
   LayoutDashboard, FileText, BookOpen, Image, Users, Settings,
   Languages, Navigation, Tag, FolderOpen, ChevronLeft, Menu,
-  LogOut, Globe, MessageSquare
+  LogOut, Globe, MessageSquare, Home
 } from 'lucide-react';
 
 const menuItems = [
@@ -132,6 +132,17 @@ export function AdminSidebar() {
           );
         })}
       </nav>
+
+      {/* Quick links */}
+      <div className="px-3 pb-2 space-y-1 border-t pt-2" style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+        <a href="/" target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all hover:bg-gray-100 dark:hover:bg-gray-800"
+          style={{ color: 'var(--color-text)' }}
+          title={collapsed ? 'عرض الموقع' : undefined}>
+          <Globe className="w-4 h-4 flex-shrink-0 opacity-60" />
+          {!collapsed && <span className="opacity-70 text-xs">عرض الموقع</span>}
+        </a>
+      </div>
 
       {/* User */}
       <div className="p-3 border-t" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { dashboardApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
-import { FileText, BookOpen, Image, Users, TrendingUp, Clock } from 'lucide-react';
+import { FileText, BookOpen, Image, Users, TrendingUp, Clock, Home, ExternalLink, LayoutGrid } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user } = useAuthStore();
@@ -56,6 +56,25 @@ export default function AdminDashboard() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Landing Page Quick Access */}
+      <div className="cms-card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-heading font-semibold flex items-center gap-2">
+            <Home className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+            الصفحة الرئيسية
+          </h2>
+          <a href="/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm" style={{ color: 'var(--color-primary)' }}>
+            <ExternalLink className="w-3.5 h-3.5" />
+            معاينة
+          </a>
+        </div>
+        <p className="text-sm opacity-60 mb-4" style={{ color: 'var(--color-text)' }}>
+          تحكم كامل في محتوى الصفحة الرئيسية — أضف أقساماً وعدّلها وأعد ترتيبها
+        </p>
+        <LandingPageQuickActions />
       </div>
 
       {/* Recent Posts */}
@@ -119,6 +138,45 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Landing Page quick-access card ──────────────────────────────────────────
+function LandingPageQuickActions() {
+  const [homePageId, setHomePageId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    import('@/lib/api').then(({ pagesApi }) => {
+      pagesApi.list({ search: 'home', status: 'published', limit: '5' })
+        .then(({ data }) => {
+          const home = data.pages?.find((p: any) => p.slug === 'home') || data.pages?.[0];
+          setHomePageId(home?.id || null);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  const actions = [
+    { label: 'تعديل الأقسام', href: homePageId ? `/admin/pages/${homePageId}?tab=sections` : '/admin/pages', icon: LayoutGrid, primary: true },
+    { label: 'إعدادات الموقع', href: '/admin/settings', icon: Home, primary: false },
+    { label: 'صفحة جديدة', href: '/admin/pages/new', icon: FileText, primary: false },
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {actions.map((a) => (
+        <Link key={a.href} href={a.href}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-90 ${a.primary ? 'text-white' : 'border'}`}
+          style={a.primary
+            ? { background: 'var(--color-primary)' }
+            : { borderColor: 'rgba(0,0,0,0.15)', color: 'var(--color-text)' }}>
+          <a.icon className="w-4 h-4" />
+          {loading && a.primary ? '...' : a.label}
+        </Link>
+      ))}
     </div>
   );
 }

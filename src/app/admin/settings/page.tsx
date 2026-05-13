@@ -1,12 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { settingsApi } from '@/lib/api';
+import { useState, useEffect, useRef } from 'react';
+import { settingsApi, mediaApi } from '@/lib/api';
 import { useThemeStore } from '@/lib/store';
 import { toast } from 'sonner';
-import { Palette, Globe2, Share2, Code2, AlignJustify, Save } from 'lucide-react';
+import { Palette, Globe2, Share2, Code2, Save, Upload, X, Eye } from 'lucide-react';
 
 const tabs = [
   { id: 'general', label: 'عام', icon: Globe2 },
+  { id: 'display', label: 'العرض', icon: Eye },
   { id: 'theme', label: 'المظهر', icon: Palette },
   { id: 'social', label: 'التواصل الاجتماعي', icon: Share2 },
   { id: 'advanced', label: 'متقدم', icon: Code2 },
@@ -25,6 +26,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const { setTheme } = useThemeStore();
 
   useEffect(() => {
@@ -37,6 +39,22 @@ export default function SettingsPage() {
 
   const update = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const uploadImage = async (key: string, file: File) => {
+    setUploadingKey(key);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', '/settings');
+      const { data } = await mediaApi.upload(formData);
+      update(key, data.media.file_url);
+      toast.success('تم رفع الصورة بنجاح');
+    } catch {
+      toast.error('فشل رفع الصورة');
+    } finally {
+      setUploadingKey(null);
+    }
   };
 
   const save = async () => {
@@ -97,6 +115,25 @@ export default function SettingsPage() {
           {activeTab === 'general' && (
             <>
               <h2 className="text-lg font-heading font-semibold">إعدادات عامة</h2>
+
+              {/* Logo & Favicon */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+                <ImageField
+                  label="شعار الموقع (Logo)"
+                  value={settings.site_logo || ''}
+                  onChange={v => update('site_logo', v)}
+                  onUpload={f => uploadImage('site_logo', f)}
+                  uploading={uploadingKey === 'site_logo'}
+                />
+                <ImageField
+                  label="أيقونة الموقع (Favicon)"
+                  value={settings.site_favicon || ''}
+                  onChange={v => update('site_favicon', v)}
+                  onUpload={f => uploadImage('site_favicon', f)}
+                  uploading={uploadingKey === 'site_favicon'}
+                />
+              </div>
+
               <Field label="اسم الموقع" value={settings.site_name || ''} onChange={v => update('site_name', v)} />
               <Field label="وصف الموقع" value={settings.site_description || ''} onChange={v => update('site_description', v)} textarea />
               <Field label="البريد الإلكتروني" value={settings.site_email || ''} onChange={v => update('site_email', v)} type="email" />
@@ -110,6 +147,54 @@ export default function SettingsPage() {
                   onChange={(e) => update('posts_per_page', e.target.value)}
                   className="w-20 px-3 py-1.5 border rounded-lg text-sm"
                   style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
+              </div>
+            </>
+          )}
+
+          {/* Display Tab */}
+          {activeTab === 'display' && (
+            <>
+              <h2 className="text-lg font-heading font-semibold">إعدادات العرض</h2>
+              <p className="text-sm opacity-60" style={{ color: 'var(--color-text)' }}>
+                تحكم في ما يظهر في شريط التنقل والتذييل
+              </p>
+
+              {/* Navbar */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold pt-2 border-t" style={{ color: 'var(--color-text)', borderColor: 'rgba(0,0,0,0.08)' }}>
+                  شريط التنقل (Navbar)
+                </h3>
+                <ToggleField
+                  label="إظهار اللوجو في شريط التنقل"
+                  description="يعرض صورة الشعار المرفوعة في الإعدادات العامة"
+                  checked={settings.show_logo_navbar !== 'false'}
+                  onChange={v => update('show_logo_navbar', v ? 'true' : 'false')}
+                />
+                <ToggleField
+                  label="إظهار اسم الموقع في شريط التنقل"
+                  description="يعرض اسم الموقع بجانب اللوجو"
+                  checked={settings.show_name_navbar !== 'false'}
+                  onChange={v => update('show_name_navbar', v ? 'true' : 'false')}
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold pt-2 border-t" style={{ color: 'var(--color-text)', borderColor: 'rgba(0,0,0,0.08)' }}>
+                  التذييل (Footer)
+                </h3>
+                <ToggleField
+                  label="إظهار اللوجو في التذييل"
+                  description="يعرض صورة الشعار في أسفل الصفحة"
+                  checked={settings.show_logo_footer !== 'false'}
+                  onChange={v => update('show_logo_footer', v ? 'true' : 'false')}
+                />
+                <ToggleField
+                  label="إظهار اسم الموقع في التذييل"
+                  description="يعرض اسم الموقع في التذييل"
+                  checked={settings.show_name_footer !== 'false'}
+                  onChange={v => update('show_name_footer', v ? 'true' : 'false')}
+                />
               </div>
             </>
           )}
@@ -269,6 +354,61 @@ function Field({ label, value, onChange, type = 'text', placeholder, textarea }:
   );
 }
 
+function ImageField({ label, value, onChange, onUpload, uploading }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onUpload: (file: File) => void;
+  uploading?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-text)' }}>{label}</label>
+      {value ? (
+        <div className="flex items-center gap-3 p-3 border rounded-xl" style={{ borderColor: 'rgba(0,0,0,0.12)' }}>
+          <img src={value} alt={label} className="h-12 w-auto max-w-32 object-contain rounded" onError={e => (e.currentTarget.style.display = 'none')} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-gray-400 truncate">{value}</p>
+          </div>
+          <button onClick={() => onChange('')} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors flex-shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          className="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer hover:border-primary transition-colors"
+          style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
+          {uploading ? (
+            <div className="animate-spin rounded-full h-6 w-6 border-2 border-t-transparent" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
+          ) : (
+            <>
+              <Upload className="w-6 h-6 text-gray-400" />
+              <p className="text-sm text-gray-500">اضغط لرفع صورة</p>
+              <p className="text-xs text-gray-400">PNG, JPG, SVG — حتى 5 ميجابايت</p>
+            </>
+          )}
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }}
+      />
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-xs text-gray-400">أو أدخل رابطاً:</span>
+        <input type="url" value={value} onChange={e => onChange(e.target.value)} placeholder="https://..."
+          className="flex-1 px-3 py-1.5 border rounded-lg text-xs"
+          style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
+      </div>
+    </div>
+  );
+}
+
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center gap-3">
@@ -283,6 +423,29 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
           className="w-full px-2 py-1 border rounded text-sm font-mono"
           style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
       </div>
+    </div>
+  );
+}
+
+function ToggleField({ label, description, checked, onChange }: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-xl transition-colors"
+      style={{ borderColor: 'rgba(0,0,0,0.1)', background: checked ? 'rgba(99,102,241,0.04)' : 'transparent' }}>
+      <div>
+        <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{label}</p>
+        {description && <p className="text-xs mt-0.5 opacity-50" style={{ color: 'var(--color-text)' }}>{description}</p>}
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex w-12 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? '' : 'bg-gray-200'}`}
+        style={checked ? { background: 'var(--color-primary)' } : {}}>
+        <span className={`inline-block w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform mt-0.5 ${checked ? 'translate-x-6' : 'translate-x-0.5'}`} />
+      </button>
     </div>
   );
 }

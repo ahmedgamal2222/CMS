@@ -1,25 +1,89 @@
+﻿'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { publicApi } from '@/lib/api';
+import { useSiteSettingsStore } from '@/lib/store';
+import { LandingSection, type Section } from '@/components/LandingSection';
+import { PublicNavbar } from '@/components/public/PublicNavbar';
+import { PublicFooter } from '@/components/public/PublicFooter';
 
 export default function HomePage() {
-  return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-8" dir="rtl">
-      <div
-        className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-white text-3xl font-bold"
-        style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }}
-      >
-        CMS
+  const [sections, setSections] = useState<Section[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { settings, loaded } = useSiteSettingsStore();
+
+  useEffect(() => {
+    publicApi.landing()
+      .catch(() => ({ data: { sections: [] } }))
+      .then((landingRes) => {
+        const rawSections: any[] = landingRes.data.sections || [];
+        setSections(
+          rawSections
+            .filter((s: any) => s.is_active)
+            .map((s: any) => ({
+              ...s,
+              content: typeof s.content === 'string' ? JSON.parse(s.content) : (s.content || {}),
+              settings: typeof s.settings === 'string' ? JSON.parse(s.settings) : (s.settings || {}),
+            }))
+            .sort((a: any, b: any) => a.order_index - b.order_index)
+        );
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading || !loaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-background)' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl animate-pulse"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }} />
+          <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--color-primary, #6366f1)' }} />
+        </div>
       </div>
-      <h1 className="text-4xl font-bold text-center">نظام إدارة المحتوى</h1>
-      <p className="text-gray-500 text-center max-w-md">
-        منصة متكاملة لإدارة المحتوى الرقمي بكل سهولة واحترافية
-      </p>
-      <Link
-        href="/admin"
-        className="px-8 py-3 rounded-xl text-white font-semibold transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }}
-      >
-        الدخول إلى لوحة التحكم
-      </Link>
-    </main>
+    );
+  }
+
+  // No sections yet â€” show default splash
+  if (sections.length === 0) {
+    return (
+      <div dir="rtl" style={{ background: 'var(--color-background)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <PublicNavbar />
+        <main className="flex-1 flex flex-col items-center justify-center gap-6 p-8 pt-24">
+          {settings.site_logo ? (
+            <img src={settings.site_logo as string} alt={settings.site_name as string || 'Logo'} className="h-20 object-contain" />
+          ) : (
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-white text-3xl font-bold"
+              style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }}>
+              {(settings.site_name as string)?.charAt(0) || 'C'}
+            </div>
+          )}
+          <h1 className="text-4xl font-heading font-bold text-center" style={{ color: 'var(--color-text)' }}>
+            {settings.site_name as string || 'Ù†Ø¸Ø§Ù… Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø­ØªÙˆÙ‰'}
+          </h1>
+          <p className="text-center max-w-md opacity-60" style={{ color: 'var(--color-text)' }}>
+            {settings.site_description as string || 'Ù…Ù†ØµØ© Ù…ØªÙƒØ§Ù…Ù„Ø© Ù„Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø±Ù‚Ù…ÙŠ'}
+          </p>
+          <Link href="/admin"
+            className="px-8 py-3 rounded-xl text-white font-semibold transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }}>
+            Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
+          </Link>
+        </main>
+        <PublicFooter />
+      </div>
+    );
+  }
+
+  return (
+    <div dir="rtl" style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
+      <PublicNavbar />
+      <main>
+        {sections.map((section) => (
+          <LandingSection key={section.id} section={section} />
+        ))}
+      </main>
+      <PublicFooter />
+    </div>
   );
 }
+

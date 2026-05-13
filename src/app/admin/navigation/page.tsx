@@ -18,7 +18,7 @@ const LINK_TYPES = [
   { value: 'category', label: 'تصنيف' },
 ];
 
-const defaultItem = { title: '', url: '', link_type: 'custom', open_in_new_tab: false };
+const defaultItem = { label: '', url: '', type: 'custom', target: '_self' };
 
 export default function NavigationPage() {
   const [menus, setMenus] = useState<any[]>([]);
@@ -69,13 +69,14 @@ export default function NavigationPage() {
   };
 
   const addItem = async () => {
-    if (!itemForm.title || !itemForm.url) { toast.error('العنوان والرابط مطلوبان'); return; }
+    if (!itemForm.label) { toast.error('العنوان مطلوب'); return; }
     try {
+      const payload = { ...itemForm };
       if (editingItem) {
-        await navigationApi.updateItem(editingItem.id, itemForm);
+        await navigationApi.updateItem(editingItem.id, payload);
         toast.success('تم تحديث العنصر');
       } else {
-        await navigationApi.addItem(activeMenu.id, { ...itemForm, order_index: (activeMenu.items?.length || 0) + 1 });
+        await navigationApi.addItem(activeMenu.id, { ...payload, order_index: (currentMenu?.items?.length || 0) });
         toast.success('تمت إضافة العنصر');
       }
       setShowItemForm(false);
@@ -100,7 +101,7 @@ export default function NavigationPage() {
 
   const openEditItem = (item: any) => {
     setEditingItem(item);
-    setItemForm({ title: item.title, url: item.url, link_type: item.link_type || 'custom', open_in_new_tab: item.open_in_new_tab || false });
+    setItemForm({ label: item.label, url: item.url || '', type: item.type || 'custom', target: item.target || '_self' });
     setShowItemForm(true);
   };
 
@@ -195,15 +196,16 @@ export default function NavigationPage() {
                   <h4 className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>{editingItem ? 'تعديل العنصر' : 'عنصر جديد'}</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">العنوان</label>
-                      <input type="text" value={itemForm.title}
-                        onChange={(e) => setItemForm((p: any) => ({ ...p, title: e.target.value }))}
+                      <label className="block text-xs text-gray-500 mb-1">العنوان *</label>
+                      <input type="text" value={itemForm.label}
+                        onChange={(e) => setItemForm((p: any) => ({ ...p, label: e.target.value }))}
+                        placeholder="الرئيسية"
                         className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
                     </div>
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">نوع الرابط</label>
-                      <select value={itemForm.link_type}
-                        onChange={(e) => setItemForm((p: any) => ({ ...p, link_type: e.target.value }))}
+                      <select value={itemForm.type}
+                        onChange={(e) => setItemForm((p: any) => ({ ...p, type: e.target.value }))}
                         className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
                         {LINK_TYPES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                       </select>
@@ -216,8 +218,8 @@ export default function NavigationPage() {
                         className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" id="new_tab" checked={itemForm.open_in_new_tab}
-                        onChange={(e) => setItemForm((p: any) => ({ ...p, open_in_new_tab: e.target.checked }))}
+                      <input type="checkbox" id="new_tab" checked={itemForm.target === '_blank'}
+                        onChange={(e) => setItemForm((p: any) => ({ ...p, target: e.target.checked ? '_blank' : '_self' }))}
                         className="rounded" />
                       <label htmlFor="new_tab" className="text-sm" style={{ color: 'var(--color-text)' }}>فتح في تبويب جديد</label>
                     </div>
@@ -249,10 +251,10 @@ export default function NavigationPage() {
                             <ChevronRight className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{item.title}</p>
+                            <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{item.label}</p>
                             <p className="text-xs text-gray-400 flex items-center gap-1" dir="ltr">
                               {item.url}
-                              {item.open_in_new_tab && <ExternalLink className="w-3 h-3" />}
+                              {item.target === '_blank' && <ExternalLink className="w-3 h-3" />}
                             </p>
                           </div>
                         </div>
