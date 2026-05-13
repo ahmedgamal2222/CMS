@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore, useThemeStore } from '@/lib/store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
@@ -9,18 +9,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, token, loadUser } = useAuthStore();
   const { applyTheme } = useThemeStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
     applyTheme();
-    loadUser();
+    if (!isLoginPage) loadUser();
   }, []);
 
   useEffect(() => {
-    if (!token && typeof window !== 'undefined') {
+    if (!isLoginPage && !token && typeof window !== 'undefined') {
       const stored = localStorage.getItem('cms_token');
       if (!stored) router.replace('/admin/login');
     }
-  }, [token]);
+  }, [token, isLoginPage]);
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (!token && !user) {
     return (
