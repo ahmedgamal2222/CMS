@@ -1,18 +1,20 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './src/i18n/routing';
 import { NextRequest, NextResponse } from 'next/server';
 
-const intlMiddleware = createMiddleware(routing);
+const SUPPORTED_LOCALES = ['ar', 'en', 'fr', 'de', 'es', 'tr'];
+const DEFAULT_LOCALE = 'ar';
 
 export default function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+  const locale = cookieLocale && SUPPORTED_LOCALES.includes(cookieLocale)
+    ? cookieLocale
+    : DEFAULT_LOCALE;
 
-  // Admin routes require auth check (done client-side)
-  if (pathname.startsWith('/admin') || pathname.match(/^\/[a-z]{2}\/admin/)) {
-    return intlMiddleware(request);
+  const response = NextResponse.next();
+  response.headers.set('x-next-intl-locale', locale);
+  if (!cookieLocale) {
+    response.cookies.set('NEXT_LOCALE', locale, { path: '/' });
   }
-
-  return intlMiddleware(request);
+  return response;
 }
 
 export const config = {

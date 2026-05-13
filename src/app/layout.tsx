@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from 'sonner';
-import '../globals.css';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'CMS - نظام إدارة المحتوى',
@@ -10,9 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-  const dir = locale === 'ar' || locale === 'he' || locale === 'fa' ? 'rtl' : 'ltr';
+  const locale = 'ar';
+  let messages = {};
+  try {
+    messages = (await import('../../messages/ar.json')).default;
+  } catch { /* empty */ }
+  const dir = 'rtl';
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>

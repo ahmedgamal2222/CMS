@@ -1,10 +1,10 @@
 import { getRequestConfig } from 'next-intl/server';
-import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
-export default getRequestConfig(async ({ locale }) => {
-  const lang = locale || 'ar';
+export default getRequestConfig(async ({ requestLocale }) => {
+  const locale = (await requestLocale) || 'ar';
+  const lang = locale;
 
   try {
     // Try to fetch translations from API
