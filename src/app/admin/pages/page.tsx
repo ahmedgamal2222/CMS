@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { pagesApi } from '@/lib/api';
 import { toast } from 'sonner';
-import { Plus, Search, Edit2, Trash2, Eye, FileText } from 'lucide-react';
-import { DataTable } from '@/components/admin/DataTable';
+import { Plus, Search, Edit2, Trash2, Eye, FileText, Home, LayoutGrid, ExternalLink } from 'lucide-react';
 
 export default function PagesPage() {
   const [pages, setPages] = useState<any[]>([]);
@@ -43,6 +42,8 @@ export default function PagesPage() {
     return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{label}</span>;
   };
 
+  const homePage = pages.find(p => p.slug === 'home');
+
   return (
     <div className="space-y-5" dir="rtl">
       <div className="flex items-center justify-between">
@@ -54,6 +55,52 @@ export default function PagesPage() {
           style={{ background: 'var(--color-primary)' }}>
           <Plus className="w-4 h-4" /> صفحة جديدة
         </Link>
+      </div>
+
+      {/* Home Page Quick Access */}
+      <div className="rounded-2xl border-2 overflow-hidden"
+        style={{ borderColor: 'var(--color-primary)', background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
+        <div className="flex items-center gap-4 p-4">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-white"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary, #8b5cf6))' }}>
+            <Home className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>الصفحة الرئيسية</p>
+            <p className="text-xs text-gray-400 mt-0.5 font-mono">/</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a href="/" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium hover:bg-white/50 transition-colors"
+              style={{ borderColor: 'rgba(99,102,241,0.3)', color: 'var(--color-primary)' }}>
+              <ExternalLink className="w-3.5 h-3.5" />
+              عرض
+            </a>
+            {homePage ? (
+              <>
+                <Link href={`/admin/pages/${homePage.id}`}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium hover:bg-white/50 transition-colors"
+                  style={{ borderColor: 'rgba(99,102,241,0.3)', color: 'var(--color-primary)' }}>
+                  <Edit2 className="w-3.5 h-3.5" />
+                  تعديل المحتوى
+                </Link>
+                <Link href={`/admin/pages/${homePage.id}?tab=sections`}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: 'var(--color-primary)' }}>
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  إدارة الأقسام
+                </Link>
+              </>
+            ) : (
+              <Link href="/admin/pages/new?slug=home&title=الصفحة الرئيسية"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                style={{ background: 'var(--color-primary)' }}>
+                <Plus className="w-3.5 h-3.5" />
+                إنشاء الصفحة الرئيسية
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

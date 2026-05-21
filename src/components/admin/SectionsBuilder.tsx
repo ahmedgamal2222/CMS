@@ -1,12 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { sectionsApi, mediaApi } from '@/lib/api';
+import { createPortal } from 'react-dom';
+import { sectionsApi } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Edit2, Eye, EyeOff,
   Image as ImageIcon, Type, Star, Users, Phone, LayoutGrid,
-  MessageSquare, Award, TrendingUp, Sliders, X, Check, GripVertical
+  MessageSquare, Award, TrendingUp, Sliders, X, Check, GripVertical,
+  Sparkles, FolderOpen
 } from 'lucide-react';
+import { MediaPicker } from './MediaPicker';
 
 export type SectionType =
   | 'hero' | 'slider' | 'features' | 'about' | 'services'
@@ -170,14 +173,11 @@ function SliderEditor({ content, onChange }: { content: any; onChange: (v: any) 
           <FieldInput label="العنوان" value={slide.title} onChange={v => updateSlide(i, 'title', v)} />
           <FieldInput label="العنوان الفرعي" value={slide.subtitle} onChange={v => updateSlide(i, 'subtitle', v)} />
           <FieldInput label="الوصف" value={slide.description} onChange={v => updateSlide(i, 'description', v)} />
-          <FieldInput label="رابط الصورة" value={slide.image} onChange={v => updateSlide(i, 'image', v)} placeholder="https://..." />
+          <ImagePickerField label="صورة الشريحة" value={slide.image} onChange={v => updateSlide(i, 'image', v)} />
           <div className="grid grid-cols-2 gap-3">
             <FieldInput label="نص الزر" value={slide.button_text} onChange={v => updateSlide(i, 'button_text', v)} />
             <FieldInput label="رابط الزر" value={slide.button_url} onChange={v => updateSlide(i, 'button_url', v)} />
           </div>
-          {slide.image && (
-            <img src={slide.image} alt="" className="w-full h-32 object-cover rounded-lg mt-1" onError={e => (e.currentTarget.style.display = 'none')} />
-          )}
         </div>
       ))}
 
@@ -196,8 +196,7 @@ function HeroEditor({ content, onChange }: { content: any; onChange: (v: any) =>
       <FieldInput label="العنوان" value={content.title} onChange={v => onChange({ ...content, title: v })} />
       <FieldInput label="العنوان الفرعي" value={content.subtitle} onChange={v => onChange({ ...content, subtitle: v })} />
       <FieldInput label="الوصف" value={content.description} onChange={v => onChange({ ...content, description: v })} textarea />
-      <FieldInput label="رابط الصورة" value={content.image} onChange={v => onChange({ ...content, image: v })} placeholder="https://..." />
-      {content.image && <img src={content.image} alt="" className="w-full h-32 object-cover rounded-lg" onError={e => (e.currentTarget.style.display = 'none')} />}
+      <ImagePickerField label="صورة الخلفية" value={content.image} onChange={v => onChange({ ...content, image: v })} />
       <div className="grid grid-cols-2 gap-3">
         <FieldInput label="نص الزر الأول" value={content.button_text} onChange={v => onChange({ ...content, button_text: v })} />
         <FieldInput label="رابط الزر الأول" value={content.button_url} onChange={v => onChange({ ...content, button_url: v })} />
@@ -304,6 +303,18 @@ function GenericEditor({ content, onChange, type }: { content: any; onChange: (v
   if (type === 'hero') return <HeroEditor content={content} onChange={onChange} />;
   if (type === 'features' || type === 'services') return <FeaturesEditor content={content} onChange={onChange} />;
   if (type === 'testimonials') return <TestimonialsEditor content={content} onChange={onChange} />;
+  if (type === 'about') return (
+    <div className="space-y-3">
+      <FieldInput label="العنوان" value={content.title} onChange={v => onChange({ ...content, title: v })} />
+      <FieldInput label="العنوان الفرعي" value={content.subtitle} onChange={v => onChange({ ...content, subtitle: v })} />
+      <FieldInput label="المحتوى" value={content.content} onChange={v => onChange({ ...content, content: v })} textarea />
+      <ImagePickerField label="الصورة" value={content.image} onChange={v => onChange({ ...content, image: v })} />
+      <div className="grid grid-cols-2 gap-3">
+        <FieldInput label="نص الزر" value={content.button_text} onChange={v => onChange({ ...content, button_text: v })} />
+        <FieldInput label="رابط الزر" value={content.button_url} onChange={v => onChange({ ...content, button_url: v })} />
+      </div>
+    </div>
+  );
 
   // Generic key-value editor for remaining types
   return (
@@ -347,14 +358,192 @@ function FieldInput({ label, value, onChange, placeholder, textarea }: { label: 
   );
 }
 
+function ImagePickerField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [showPicker, setShowPicker] = useState(false);
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <div className="flex gap-2">
+        <input type="text" value={value || ''} onChange={e => onChange(e.target.value)}
+          placeholder="https://... أو اختر من المكتبة"
+          className="flex-1 px-3 py-2 border rounded-xl text-sm font-mono min-w-0"
+          style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
+        <button type="button" onClick={() => setShowPicker(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 text-xs font-medium flex-shrink-0 hover:shadow-sm transition-all"
+          style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)', background: 'rgba(99,102,241,0.05)' }}>
+          <FolderOpen className="w-3.5 h-3.5" />
+          المكتبة
+        </button>
+      </div>
+      {value && (
+        <div className="mt-2 relative rounded-xl overflow-hidden border" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+          <img src={value} alt="" className="w-full h-32 object-cover"
+            onError={e => (e.currentTarget.style.display = 'none')} />
+          <button onClick={() => onChange('')}
+            className="absolute top-2 start-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors">
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </div>
+      )}
+      {showPicker && (
+        <MediaPicker
+          title={`اختر ${label}`}
+          onSelect={url => { onChange(url); setShowPicker(false); }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Portal wrapper (SSR-safe) ────────────────────────────────────────────────
+function ClientPortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(children, document.body);
+}
+
+// ─── Add Section Modal ────────────────────────────────────────────────────────
+function AddSectionModal({ onClose, onAdd, saving }: {
+  onClose: () => void;
+  onAdd: (type: SectionType) => void;
+  saving: boolean;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <ClientPortal>
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" dir="rtl">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+          style={{ background: 'var(--color-surface)' }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
+            style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--color-primary)', opacity: 1 }}>
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>إضافة قسم جديد</h3>
+                <p className="text-xs text-gray-400">اختر نوع القسم الذي تريد إضافته للصفحة</p>
+              </div>
+            </div>
+            <button onClick={onClose}
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          {/* Section type grid */}
+          <div className="overflow-y-auto p-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {SECTION_TYPES.map(st => (
+                <button
+                  key={st.type}
+                  onClick={() => { if (!saving) onAdd(st.type); }}
+                  disabled={saving}
+                  className="group flex flex-col items-start p-4 border-2 rounded-xl hover:shadow-md transition-all text-start disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ borderColor: 'rgba(0,0,0,0.08)', background: 'var(--color-surface)' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = st.color)}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)')}>
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                    style={{ background: st.color + '18' }}>
+                    <st.icon className="w-5 h-5" style={{ color: st.color }} />
+                  </div>
+                  <p className="text-sm font-bold leading-tight" style={{ color: 'var(--color-text)' }}>{st.label}</p>
+                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">{st.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </ClientPortal>
+  );
+}
+
+// ─── Edit Drawer ──────────────────────────────────────────────────────────────
+function EditDrawer({ section, content, onChange, onSave, onClose, saving }: {
+  section: Section;
+  content: any;
+  onChange: (v: any) => void;
+  onSave: () => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const meta = SECTION_TYPES.find(t => t.type === section.type) || SECTION_TYPES[SECTION_TYPES.length - 1];
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <ClientPortal>
+      <div className="fixed inset-0 z-50 flex justify-end" dir="rtl">
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative z-10 w-full max-w-lg flex flex-col h-full shadow-2xl"
+          style={{ background: 'var(--color-surface)' }}>
+          {/* Colored top stripe */}
+          <div className="h-1 flex-shrink-0" style={{ background: meta.color }} />
+          {/* Header */}
+          <div className="flex items-center gap-3 px-5 py-4 border-b flex-shrink-0"
+            style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: meta.color + '18' }}>
+              <meta.icon className="w-5 h-5" style={{ color: meta.color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm truncate" style={{ color: 'var(--color-text)' }}>
+                {section.title || meta.label}
+              </h3>
+              <p className="text-xs text-gray-400">تعديل محتوى القسم</p>
+            </div>
+            <button onClick={onClose}
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto p-5">
+            <GenericEditor content={content} onChange={onChange} type={section.type} />
+          </div>
+          {/* Footer */}
+          <div className="flex gap-2 px-5 py-4 border-t flex-shrink-0"
+            style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+            <button onClick={onSave} disabled={saving}
+              className="flex items-center gap-2 flex-1 justify-center py-2.5 rounded-xl text-white font-medium text-sm hover:opacity-90 disabled:opacity-60 transition-opacity"
+              style={{ background: 'var(--color-primary)' }}>
+              <Check className="w-4 h-4" />
+              {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+            </button>
+            <button onClick={onClose}
+              className="px-5 py-2.5 border-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+              إلغاء
+            </button>
+          </div>
+        </div>
+      </div>
+    </ClientPortal>
+  );
+}
+
 // ─── Main SectionsBuilder ─────────────────────────────────────────────────────
 export function SectionsBuilder({ pageId }: Props) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [editContent, setEditContent] = useState<any>(null);
-  const [showAddPanel, setShowAddPanel] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -377,24 +566,29 @@ export function SectionsBuilder({ pageId }: Props) {
     setSaving('new');
     try {
       const { data } = await sectionsApi.create(pageId, { type, title: meta?.label || type, content });
-      setSections(prev => [...prev, {
+      const newSection = {
         ...data.section,
         content: typeof data.section.content === 'string' ? JSON.parse(data.section.content) : (data.section.content || content),
         settings: {},
-      }]);
-      setShowAddPanel(false);
-      toast.success(`تم إضافة سيكشن ${meta?.label}`);
+      };
+      setSections(prev => [...prev, newSection]);
+      setShowAddModal(false);
+      toast.success(`تم إضافة "${meta?.label}" بنجاح`);
+      // Auto-open edit drawer for the new section
+      setEditingSection(newSection);
+      setEditContent(newSection.content);
     } catch { toast.error('فشل الإضافة'); }
     finally { setSaving(null); }
   };
 
-  const saveSection = async (section: Section) => {
-    setSaving(section.id);
+  const saveSection = async () => {
+    if (!editingSection) return;
+    setSaving(editingSection.id);
     try {
-      await sectionsApi.update(pageId, section.id, { content: editContent });
-      setSections(prev => prev.map(s => s.id === section.id ? { ...s, content: editContent } : s));
-      setEditingId(null);
-      toast.success('تم الحفظ');
+      await sectionsApi.update(pageId, editingSection.id, { content: editContent });
+      setSections(prev => prev.map(s => s.id === editingSection.id ? { ...s, content: editContent } : s));
+      setEditingSection(null);
+      toast.success('تم حفظ التغييرات');
     } catch { toast.error('فشل الحفظ'); }
     finally { setSaving(null); }
   };
@@ -408,10 +602,11 @@ export function SectionsBuilder({ pageId }: Props) {
   };
 
   const deleteSection = async (section: Section) => {
-    if (!confirm('هل أنت متأكد من حذف هذا السيكشن؟')) return;
+    if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
     try {
       await sectionsApi.delete(pageId, section.id);
       setSections(prev => prev.filter(s => s.id !== section.id));
+      if (editingSection?.id === section.id) setEditingSection(null);
       toast.success('تم الحذف');
     } catch { toast.error('فشل الحذف'); }
   };
@@ -428,14 +623,14 @@ export function SectionsBuilder({ pageId }: Props) {
   };
 
   const startEdit = (section: Section) => {
-    setEditingId(section.id);
+    setEditingSection(section);
     setEditContent(section.content);
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditContent(null); };
+  const cancelEdit = () => { setEditingSection(null); setEditContent(null); };
 
   if (loading) return (
-    <div className="flex items-center justify-center py-12">
+    <div className="flex items-center justify-center py-16">
       <div className="animate-spin rounded-full h-8 w-8 border-4 border-t-transparent" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
     </div>
   );
@@ -444,81 +639,96 @@ export function SectionsBuilder({ pageId }: Props) {
 
   return (
     <div className="space-y-4" dir="rtl">
+      {/* Add Section Modal */}
+      {showAddModal && (
+        <AddSectionModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={addSection}
+          saving={saving === 'new'}
+        />
+      )}
+
+      {/* Edit Drawer */}
+      {editingSection && (
+        <EditDrawer
+          section={editingSection}
+          content={editContent}
+          onChange={setEditContent}
+          onSave={saveSection}
+          onClose={cancelEdit}
+          saving={saving === editingSection.id}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold" style={{ color: 'var(--color-text)' }}>أقسام الصفحة</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{sections.length} قسم — اسحب لإعادة الترتيب</p>
+          <p className="text-xs text-gray-400 mt-0.5">{sections.length} {sections.length === 1 ? 'قسم' : 'أقسام'}</p>
         </div>
         <button
-          onClick={() => setShowAddPanel(v => !v)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
           style={{ background: 'var(--color-primary)' }}>
           <Plus className="w-4 h-4" />
-          {showAddPanel ? 'إغلاق' : 'إضافة قسم'}
+          إضافة قسم
         </button>
       </div>
 
-      {/* Add panel */}
-      {showAddPanel && (
-        <div className="cms-card border-2 p-4" style={{ borderColor: 'var(--color-primary)', borderStyle: 'dashed' }}>
-          <h4 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>اختر نوع القسم</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {SECTION_TYPES.map(st => (
-              <button
-                key={st.type}
-                onClick={() => addSection(st.type)}
-                disabled={saving === 'new'}
-                className="flex items-start gap-2.5 p-3 border rounded-xl hover:shadow-sm transition-all text-start"
-                style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: st.color + '20' }}>
-                  <st.icon className="w-4 h-4" style={{ color: st.color }} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text)' }}>{st.label}</p>
-                  <p className="text-xs text-gray-400 truncate">{st.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Sections list */}
-      {sections.length === 0 && !showAddPanel ? (
-        <div className="cms-card text-center py-12">
-          <LayoutGrid className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400 text-sm">لا توجد أقسام بعد</p>
-          <button onClick={() => setShowAddPanel(true)}
-            className="mt-3 text-sm hover:underline" style={{ color: 'var(--color-primary)' }}>
+      {sections.length === 0 ? (
+        <div className="rounded-2xl border-2 border-dashed text-center py-16 space-y-3"
+          style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+          <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
+            style={{ background: 'rgba(99,102,241,0.08)' }}>
+            <LayoutGrid className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
+          </div>
+          <div>
+            <p className="font-semibold" style={{ color: 'var(--color-text)' }}>لا توجد أقسام بعد</p>
+            <p className="text-sm text-gray-400 mt-1">ابدأ ببناء صفحتك بإضافة أول قسم</p>
+          </div>
+          <button onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            style={{ background: 'var(--color-primary)' }}>
+            <Sparkles className="w-4 h-4" />
             أضف أول قسم
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {sections.map((section, idx) => {
             const meta = sectionMeta(section.type);
-            const isEditing = editingId === section.id;
+            const isActive = !!section.is_active;
+            const isEditing = editingSection?.id === section.id;
 
             return (
               <div key={section.id}
-                className={`cms-card overflow-hidden transition-all ${!section.is_active ? 'opacity-50' : ''}`}>
-                {/* Section header */}
-                <div className="flex items-center gap-3 p-4">
-                  {/* drag handle / order */}
-                  <div className="flex flex-col gap-0.5">
-                    <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-30">
+                className={`rounded-xl border-2 transition-all ${isEditing ? 'shadow-md' : 'shadow-sm hover:shadow-md'} ${!isActive ? 'opacity-55' : ''}`}
+                style={{
+                  borderColor: isEditing ? meta.color : 'rgba(0,0,0,0.07)',
+                  background: 'var(--color-surface)',
+                }}>
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  {/* Colored left accent bar */}
+                  <div className="w-1 h-10 rounded-full flex-shrink-0" style={{ background: meta.color }} />
+
+                  {/* Order controls */}
+                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                    <button onClick={() => move(idx, -1)} disabled={idx === 0}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-20 transition-colors">
                       <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
                     </button>
-                    <GripVertical className="w-4 h-4 text-gray-300 mx-auto" />
-                    <button onClick={() => move(idx, 1)} disabled={idx === sections.length - 1} className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-30">
+                    <span className="text-xs font-bold text-gray-300 leading-none">{idx + 1}</span>
+                    <button onClick={() => move(idx, 1)} disabled={idx === sections.length - 1}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-20 transition-colors">
                       <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
                     </button>
                   </div>
 
-                  {/* Icon */}
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: meta.color + '20' }}>
-                    <meta.icon className="w-4.5 h-4.5" style={{ color: meta.color }} />
+                  {/* Section icon */}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: meta.color + '15' }}>
+                    <meta.icon className="w-5 h-5" style={{ color: meta.color }} />
                   </div>
 
                   {/* Info */}
@@ -526,49 +736,55 @@ export function SectionsBuilder({ pageId }: Props) {
                     <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text)' }}>
                       {section.title || meta.label}
                     </p>
-                    <p className="text-xs text-gray-400">{meta.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{meta.description}</p>
                   </div>
 
+                  {/* Status badge */}
+                  <span className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${isActive ? 'text-green-700 bg-green-50' : 'text-gray-400 bg-gray-100'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    {isActive ? 'ظاهر' : 'مخفي'}
+                  </span>
+
                   {/* Actions */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button onClick={() => toggleActive(section)}
-                      title={section.is_active ? 'إخفاء' : 'إظهار'}
-                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      {section.is_active ? <Eye className="w-4 h-4 text-green-500" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+                      title={isActive ? 'إخفاء القسم' : 'إظهار القسم'}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors sm:hidden">
+                      {isActive ? <Eye className="w-4 h-4 text-green-500" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
                     </button>
-                    <button onClick={() => isEditing ? cancelEdit() : startEdit(section)}
-                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      {isEditing ? <X className="w-4 h-4 text-gray-500" /> : <Edit2 className="w-4 h-4 text-gray-500" />}
+                    <button onClick={() => toggleActive(section)}
+                      title={isActive ? 'إخفاء' : 'إظهار'}
+                      className="hidden sm:flex p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      {isActive ? <Eye className="w-4 h-4 text-green-500" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+                    </button>
+                    <button
+                      onClick={() => isEditing ? cancelEdit() : startEdit(section)}
+                      className="p-2 rounded-lg transition-colors"
+                      style={isEditing
+                        ? { background: meta.color + '15', color: meta.color }
+                        : { color: 'var(--color-text)' }}
+                      title="تعديل القسم">
+                      <Edit2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => deleteSection(section)}
-                      className="p-2 rounded-lg hover:bg-red-50 text-red-400 transition-colors">
+                      className="p-2 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                      title="حذف القسم">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-
-                {/* Edit panel */}
-                {isEditing && (
-                  <div className="border-t p-4 space-y-4" style={{ borderColor: 'rgba(0,0,0,0.06)', background: 'var(--color-surface)' }}>
-                    <GenericEditor content={editContent} onChange={setEditContent} type={section.type} />
-                    <div className="flex gap-2 pt-1">
-                      <button onClick={() => saveSection(section)} disabled={saving === section.id}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 disabled:opacity-60"
-                        style={{ background: 'var(--color-primary)' }}>
-                        <Check className="w-4 h-4" />
-                        {saving === section.id ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-                      </button>
-                      <button onClick={cancelEdit}
-                        className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                        style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
-                        إلغاء
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
+
+          {/* Add more button at bottom */}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-full py-3 rounded-xl border-2 border-dashed text-sm font-medium flex items-center justify-center gap-2 hover:shadow-sm transition-all"
+            style={{ borderColor: 'rgba(99,102,241,0.3)', color: 'var(--color-primary)', background: 'rgba(99,102,241,0.03)' }}>
+            <Plus className="w-4 h-4" />
+            إضافة قسم آخر
+          </button>
         </div>
       )}
     </div>

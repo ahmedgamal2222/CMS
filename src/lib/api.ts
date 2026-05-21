@@ -61,11 +61,18 @@ export const postsApi = {
 export const mediaApi = {
   list: (params?: any) => api.get('/media', { params }),
   upload: (formData: FormData) => api.post('/media/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    transformRequest: [(_data: any, headers: any) => {
+      // Remove Content-Type so browser sets it automatically with the correct multipart boundary
+      if (headers) {
+        delete headers['Content-Type'];
+        delete headers.post?.['Content-Type'];
+      }
+      return formData;
+    }],
   }),
   update: (id: string, data: any) => api.put(`/media/${id}`, data),
   delete: (id: string) => api.delete(`/media/${id}`),
-  getUrl: (key: string) => `${API_URL}/media/file/${encodeURIComponent(key)}`,
+  getUrl: (key: string) => `${API_URL}/media/file/${key}`,
 };
 
 // Settings

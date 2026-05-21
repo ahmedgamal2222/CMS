@@ -77,6 +77,15 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-3 overflow-y-auto space-y-1">
+        {/* Home Page quick shortcut */}
+        <Link
+          href="/admin/pages"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold mb-2 transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary, #8b5cf6))', color: '#fff' }}
+          title={collapsed ? 'الصفحة الرئيسية' : undefined}>
+          <Home className="w-4 h-4 flex-shrink-0" />
+          {!collapsed && <span>الصفحة الرئيسية</span>}
+        </Link>
         {menuItems.map((item) => {
           if (item.children) {
             const isOpen = openGroups.includes(item.label);

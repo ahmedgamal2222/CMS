@@ -21,10 +21,24 @@ export default function PageEditor({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
+    // Pre-fill from URL params for new pages (e.g. ?slug=home&title=الصفحة الرئيسية)
+    if (isNew && typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search);
+      const preSlug = p.get('slug');
+      const preTitle = p.get('title');
+      if (preSlug || preTitle) {
+        setForm(prev => ({ ...prev, slug: preSlug || prev.slug, title: preTitle || prev.title }));
+      }
+    }
     if (!isNew) {
       pagesApi.get(params.id).then(({ data }) => {
         setForm({ ...data.page });
         setLoading(false);
+        // Auto-switch to sections tab if URL has ?tab=sections
+        if (typeof window !== 'undefined') {
+          const p = new URLSearchParams(window.location.search);
+          if (p.get('tab') === 'sections') setActiveTab('sections');
+        }
       });
     }
   }, [params.id]);
@@ -192,24 +206,45 @@ export default function PageEditor({ params }: { params: { id: string } }) {
             <h3 className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>الإعدادات</h3>
             <div>
               <label className="block text-xs text-gray-500 mb-1">الحالة</label>
-              <select value={form.status} onChange={(e) => setForm(p => ({ ...p, status: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
-                <option value="draft">مسودة</option>
-                <option value="published">منشورة</option>
-                <option value="archived">مؤرشفة</option>
-              </select>
+              <div className="flex gap-2">
+                {[
+                  { value: 'draft', label: 'مسودة', color: '#f59e0b' },
+                  { value: 'published', label: 'منشورة', color: '#10b981' },
+                  { value: 'archived', label: 'مؤرشفة', color: '#6b7280' },
+                ].map(s => (
+                  <button key={s.value} onClick={() => setForm(p => ({ ...p, status: s.value }))}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-medium border-2 transition-all"
+                    style={{
+                      borderColor: form.status === s.value ? s.color : 'rgba(0,0,0,0.1)',
+                      background: form.status === s.value ? s.color + '15' : 'transparent',
+                      color: form.status === s.value ? s.color : 'var(--color-text)',
+                    }}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">القالب</label>
-              <select value={form.template} onChange={(e) => setForm(p => ({ ...p, template: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
-                <option value="default">افتراضي</option>
-                <option value="full-width">عرض كامل</option>
-                <option value="landing">صفحة هبوط</option>
-                <option value="contact">تواصل معنا</option>
-              </select>
+              <label className="block text-xs text-gray-500 mb-2">القالب</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'default', label: 'افتراضي', icon: '📄', desc: 'محتوى + شريط جانبي' },
+                  { value: 'full-width', label: 'عرض كامل', icon: '🖼️', desc: 'عرض كامل بدون شريط' },
+                  { value: 'landing', label: 'هبوط', icon: '🚀', desc: 'صفحة تسويقية' },
+                  { value: 'contact', label: 'تواصل', icon: '📬', desc: 'نموذج تواصل' },
+                ].map(t => (
+                  <button key={t.value} onClick={() => setForm(p => ({ ...p, template: t.value }))}
+                    className="flex flex-col items-start p-2.5 rounded-xl border-2 text-start transition-all"
+                    style={{
+                      borderColor: form.template === t.value ? 'var(--color-primary)' : 'rgba(0,0,0,0.09)',
+                      background: form.template === t.value ? 'rgba(99,102,241,0.06)' : 'transparent',
+                    }}>
+                    <span className="text-lg leading-none mb-1">{t.icon}</span>
+                    <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{t.label}</span>
+                    <span className="text-xs text-gray-400 leading-tight">{t.desc}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">الترتيب</label>
@@ -270,3 +305,4 @@ export default function PageEditor({ params }: { params: { id: string } }) {
     </div>
   );
 }
+

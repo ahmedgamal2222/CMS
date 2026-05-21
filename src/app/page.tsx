@@ -1,6 +1,5 @@
 ﻿'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { publicApi } from '@/lib/api';
 import { useSiteSettingsStore } from '@/lib/store';
 import { LandingSection, type Section } from '@/components/LandingSection';
@@ -43,7 +42,7 @@ export default function HomePage() {
     );
   }
 
-  // No sections yet â€” show default splash
+  // No sections yet — show default splash (no admin button for public visitors)
   if (sections.length === 0) {
     return (
       <div dir="rtl" style={{ background: 'var(--color-background)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -58,16 +57,11 @@ export default function HomePage() {
             </div>
           )}
           <h1 className="text-4xl font-heading font-bold text-center" style={{ color: 'var(--color-text)' }}>
-            {settings.site_name as string || 'Ù†Ø¸Ø§Ù… Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø­ØªÙˆÙ‰'}
+            {settings.site_name as string || 'نظام إدارة المحتوى'}
           </h1>
           <p className="text-center max-w-md opacity-60" style={{ color: 'var(--color-text)' }}>
-            {settings.site_description as string || 'Ù…Ù†ØµØ© Ù…ØªÙƒØ§Ù…Ù„Ø© Ù„Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø±Ù‚Ù…ÙŠ'}
+            {settings.site_description as string || 'منصة متكاملة لإدارة المحتوى الرقمي'}
           </p>
-          <Link href="/admin"
-            className="px-8 py-3 rounded-xl text-white font-semibold transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-secondary, #8b5cf6))' }}>
-            Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
-          </Link>
         </main>
         <PublicFooter />
       </div>
@@ -86,4 +80,3 @@ export default function HomePage() {
     </div>
   );
 }
-

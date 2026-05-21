@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { settingsApi, mediaApi } from '@/lib/api';
-import { useThemeStore } from '@/lib/store';
+import { useThemeStore, useSiteSettingsStore } from '@/lib/store';
 import { toast } from 'sonner';
-import { Palette, Globe2, Share2, Code2, Save, Upload, X, Eye } from 'lucide-react';
+import { Palette, Globe2, Share2, Code2, Save, Upload, X, Eye, FolderOpen } from 'lucide-react';
+import { MediaPicker } from '@/components/admin/MediaPicker';
 
 const tabs = [
   { id: 'general', label: 'عام', icon: Globe2 },
@@ -28,6 +29,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const { setTheme } = useThemeStore();
+  const { setSettings: setGlobalSettings } = useSiteSettingsStore();
 
   useEffect(() => {
     settingsApi.get().then(({ data }) => setSettings(data.settings));
@@ -61,6 +63,8 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       await settingsApi.update(settings);
+      // Update global store immediately (logo, favicon, name, etc.)
+      setGlobalSettings(settings);
       // Apply theme immediately
       setTheme({
         colorPrimary: settings.color_primary,
@@ -155,11 +159,55 @@ export default function SettingsPage() {
           {activeTab === 'display' && (
             <>
               <h2 className="text-lg font-heading font-semibold">إعدادات العرض</h2>
-              <p className="text-sm opacity-60" style={{ color: 'var(--color-text)' }}>
-                تحكم في ما يظهر في شريط التنقل والتذييل
-              </p>
 
-              {/* Navbar */}
+              {/* Live Navbar Preview */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold opacity-70" style={{ color: 'var(--color-text)' }}>
+                  معاينة شريط التنقل
+                </h3>
+                <div className="rounded-xl border-2 overflow-hidden" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                  {/* Simulated browser chrome */}
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 border-b" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                    <span className="w-3 h-3 rounded-full bg-red-400" />
+                    <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <span className="w-3 h-3 rounded-full bg-green-400" />
+                    <span className="flex-1 mx-3 bg-white rounded text-xs text-center py-0.5 px-2 text-gray-400 font-mono">موقعك.com</span>
+                  </div>
+                  {/* Navbar preview */}
+                  <div className="px-6 py-3 flex items-center gap-4"
+                    style={{ background: settings.color_background || '#fff' }}>
+                    {/* Logo area */}
+                    {(settings.show_logo_navbar !== 'false' && settings.site_logo) || (settings.show_name_navbar !== 'false') ? (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {settings.show_logo_navbar !== 'false' && settings.site_logo && (
+                          <img src={settings.site_logo} alt="logo" className="h-8 w-auto object-contain"
+                            onError={e => (e.currentTarget.style.display = 'none')} />
+                        )}
+                        {settings.show_name_navbar !== 'false' && (
+                          <span className="font-bold text-sm" style={{ color: settings.color_text || '#111', fontFamily: settings.font_heading }}>
+                            {settings.site_name || 'اسم الموقع'}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-20 h-6 rounded bg-gray-200 animate-pulse" />
+                    )}
+                    {/* Fake nav links */}
+                    <div className="flex items-center gap-4 flex-1 text-sm" style={{ color: settings.color_text || '#111', fontFamily: settings.font_body }}>
+                      {['الرئيسية', 'من نحن', 'خدماتنا', 'تواصل'].map(link => (
+                        <span key={link} className="opacity-70 hover:opacity-100 cursor-pointer text-xs">{link}</span>
+                      ))}
+                    </div>
+                    {/* Fake CTA */}
+                    <span className="px-3 py-1 rounded-lg text-white text-xs font-medium"
+                      style={{ background: settings.color_primary || '#6366f1' }}>
+                      ابدأ الآن
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navbar settings */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold pt-2 border-t" style={{ color: 'var(--color-text)', borderColor: 'rgba(0,0,0,0.08)' }}>
                   شريط التنقل (Navbar)
@@ -178,7 +226,31 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Footer */}
+              {/* Footer preview */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold opacity-70" style={{ color: 'var(--color-text)' }}>
+                  معاينة التذييل
+                </h3>
+                <div className="rounded-xl border-2 overflow-hidden" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+                  <div className="px-6 py-4 flex items-center gap-3"
+                    style={{ background: settings.color_text || '#111827' }}>
+                    {settings.show_logo_footer !== 'false' && settings.site_logo && (
+                      <img src={settings.site_logo} alt="logo" className="h-6 w-auto object-contain opacity-80"
+                        onError={e => (e.currentTarget.style.display = 'none')} />
+                    )}
+                    {settings.show_name_footer !== 'false' && (
+                      <span className="font-bold text-sm text-white opacity-90" style={{ fontFamily: settings.font_heading }}>
+                        {settings.site_name || 'اسم الموقع'}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400 mr-auto">
+                      {settings.footer_text || '© 2025 جميع الحقوق محفوظة'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer settings */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold pt-2 border-t" style={{ color: 'var(--color-text)', borderColor: 'rgba(0,0,0,0.08)' }}>
                   التذييل (Footer)
@@ -362,34 +434,59 @@ function ImageField({ label, value, onChange, onUpload, uploading }: {
   uploading?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const handleFile = (file: File) => {
+    // Show local preview immediately before upload
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    onUpload(file);
+  };
+
+  // Clear preview once the real URL is set
+  const displayValue = value || preview;
 
   return (
     <div>
       <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-text)' }}>{label}</label>
-      {value ? (
+      {displayValue ? (
         <div className="flex items-center gap-3 p-3 border rounded-xl" style={{ borderColor: 'rgba(0,0,0,0.12)' }}>
-          <img src={value} alt={label} className="h-12 w-auto max-w-32 object-contain rounded" onError={e => (e.currentTarget.style.display = 'none')} />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 truncate">{value}</p>
+          <div className="relative">
+            <img src={displayValue} alt={label} className="h-14 w-auto max-w-36 object-contain rounded" onError={e => (e.currentTarget.style.display = 'none')} />
+            {uploading && (
+              <div className="absolute inset-0 bg-white/70 rounded flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
+              </div>
+            )}
           </div>
-          <button onClick={() => onChange('')} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors flex-shrink-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium mb-0.5" style={{ color: 'var(--color-text)' }}>
+              {uploading ? 'جاري الرفع على R2...' : 'تم الرفع على R2 ✓'}
+            </p>
+            <p className="text-xs text-gray-400 truncate" dir="ltr">{value || '(معاينة محلية)'}</p>
+          </div>
+          <button onClick={() => { onChange(''); setPreview(null); }} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
-        <div
-          onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer hover:border-primary transition-colors"
-          style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
-          {uploading ? (
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-t-transparent" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
-          ) : (
-            <>
-              <Upload className="w-6 h-6 text-gray-400" />
-              <p className="text-sm text-gray-500">اضغط لرفع صورة</p>
-              <p className="text-xs text-gray-400">PNG, JPG, SVG — حتى 5 ميجابايت</p>
-            </>
-          )}
+        <div className="flex gap-2">
+          <div
+            onClick={() => inputRef.current?.click()}
+            className="flex-1 flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-5 cursor-pointer hover:shadow-sm transition-all"
+            style={{ borderColor: 'rgba(0,0,0,0.12)' }}>
+            <Upload className="w-5 h-5 text-gray-400" />
+            <p className="text-xs text-gray-500">رفع من الجهاز</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="flex flex-col items-center justify-center gap-2 border-2 rounded-xl p-5 flex-1 hover:shadow-sm transition-all"
+            style={{ borderColor: 'var(--color-primary)', background: 'rgba(99,102,241,0.04)' }}>
+            <FolderOpen className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+            <p className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>من مكتبة R2</p>
+          </button>
         </div>
       )}
       <input
@@ -397,14 +494,15 @@ function ImageField({ label, value, onChange, onUpload, uploading }: {
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
       />
-      <div className="flex items-center gap-2 mt-2">
-        <span className="text-xs text-gray-400">أو أدخل رابطاً:</span>
-        <input type="url" value={value} onChange={e => onChange(e.target.value)} placeholder="https://..."
-          className="flex-1 px-3 py-1.5 border rounded-lg text-xs"
-          style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
-      </div>
+      {showPicker && (
+        <MediaPicker
+          title={`اختر ${label}`}
+          onSelect={url => { onChange(url); setPreview(null); setShowPicker(false); }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   );
 }
