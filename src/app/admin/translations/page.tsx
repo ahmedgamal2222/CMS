@@ -165,7 +165,7 @@ export default function TranslationsPage() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">لا توجد ترجمات</div>
         ) : (
-          <div className="divide-y" style={{ divideColor: 'rgba(0,0,0,0.06)' }}>
+          <div className="divide-y divide-gray-100" style={{}}>
             {filtered.map((t) => (
               <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                 <code className="w-48 text-xs text-gray-500 flex-shrink-0 truncate" dir="ltr">{t.key}</code>
