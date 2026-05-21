@@ -409,7 +409,10 @@ export default function SettingsPage() {
   );
 }
 
-function Field({ label, value, onChange, type = 'text', placeholder, textarea }: any) {
+function Field({ label, value, onChange, type = 'text', placeholder, textarea }: {
+  label: string; value: string; onChange: (v: string) => void;
+  type?: string; placeholder?: string; textarea?: boolean;
+}) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-text)' }}>{label}</label>
