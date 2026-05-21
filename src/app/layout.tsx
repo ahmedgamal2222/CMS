@@ -1,3 +1,4 @@
+﻿export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';

@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+export const runtime = 'edge';
 import { useState, useEffect, useRef } from 'react';
 import { settingsApi, mediaApi } from '@/lib/api';
 import { useThemeStore, useSiteSettingsStore } from '@/lib/store';

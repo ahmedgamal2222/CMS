@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+export const runtime = 'edge';
 import { useState, useEffect } from 'react';
 import { taxonomyApi } from '@/lib/api';
 import { toast } from 'sonner';
