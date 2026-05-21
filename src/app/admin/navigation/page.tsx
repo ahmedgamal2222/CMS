@@ -200,7 +200,7 @@ export default function NavigationPage() {
                   <div key={menu.id}
                     onClick={() => setActiveMenu(menu)}
                     className={`cms-card py-3 px-3.5 cursor-pointer flex items-center justify-between transition-all ${isActive ? 'ring-2 shadow-md' : 'hover:shadow-md'}`}
-                    style={isActive ? { ringColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' } : {}}>
+                    style={isActive ? { outline: '2px solid var(--color-primary)', borderColor: 'var(--color-primary)' } : {}}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="text-lg flex-shrink-0">{loc?.icon || '🔗'}</span>
                       <div className="min-w-0">
