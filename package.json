@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node -e \"process.env.VERCEL ? require('child_process').execSync('next build',{stdio:'inherit'}) : require('child_process').execSync('npx @cloudflare/next-on-pages',{stdio:'inherit'})\"",
     "pages:build": "npx @cloudflare/next-on-pages",
     "preview": "npm run pages:build && wrangler pages dev",
     "deploy": "npm run pages:build && wrangler pages deploy",
