@@ -28,7 +28,7 @@ export function PublicFooter() {
 
   const getHref = (item: NavItem) => {
     if (item.type === 'page' && item.page_slug) {
-      return item.page_slug === 'home' ? '/' : `/pages/${item.page_slug}`;
+      return item.page_slug === 'home' ? '/' : `/pg/${item.page_slug}`;
     }
     return item.url || '#';
   };

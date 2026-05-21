@@ -92,7 +92,7 @@ export default function PageEditor({ params }: { params: { id: string } }) {
         <div className="flex gap-2">
           {!isNew && form.slug && (
             <a
-              href={form.slug === 'home' ? '/' : `/pages/${form.slug}`}
+              href={form.slug === 'home' ? '/' : `/pg/${form.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -168,13 +168,13 @@ export default function PageEditor({ params }: { params: { id: string } }) {
                 style={{ background: 'rgba(99,102,241,0.06)', color: 'var(--color-primary)' }}>
                 <span className="opacity-60">الرابط العام:</span>
                 <span className="font-mono font-medium flex-1 truncate" dir="ltr">
-                  {form.slug === 'home' ? '/' : `/pages/${form.slug}`}
+                  {form.slug === 'home' ? '/' : `/pg/${form.slug}`}
                 </span>
                 <div className="flex gap-1 flex-shrink-0">
                   <button
                     title="نسخ الرابط"
                     onClick={() => {
-                      const url = form.slug === 'home' ? window.location.origin : `${window.location.origin}/pages/${form.slug}`;
+                      const url = form.slug === 'home' ? window.location.origin : `${window.location.origin}/pg/${form.slug}`;
                       navigator.clipboard.writeText(url);
                       toast.success('تم نسخ الرابط');
                     }}
@@ -182,7 +182,7 @@ export default function PageEditor({ params }: { params: { id: string } }) {
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                   <a
-                    href={form.slug === 'home' ? '/' : `/pages/${form.slug}`}
+                    href={form.slug === 'home' ? '/' : `/pg/${form.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="فتح الصفحة"
