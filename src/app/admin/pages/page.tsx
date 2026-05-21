@@ -152,7 +152,7 @@ export default function PagesPage() {
                 <tr key={page.id} className={`border-b text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${i === pages.length - 1 ? 'border-0' : ''}`}
                   style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
                   <td className="px-4 py-3 font-medium" style={{ color: 'var(--color-text)' }}>{page.title}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs font-mono">{page.slug === 'home' ? '/' : `/pages/${page.slug}`}</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs font-mono">{page.slug === 'home' ? '/' : `/pg/${page.slug}`}</td>
                   <td className="px-4 py-3">{statusBadge(page.status)}</td>
                   <td className="px-4 py-3 text-gray-500">{page.author_name}</td>
                   <td className="px-4 py-3 text-gray-400 text-xs">
@@ -165,7 +165,7 @@ export default function PagesPage() {
                         <Edit2 className="w-3.5 h-3.5" />
                       </Link>
                       <a
-                        href={page.slug === 'home' ? '/' : `/pages/${page.slug}`}
+                        href={page.slug === 'home' ? '/' : `/pg/${page.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-1.5 rounded hover:bg-green-50 text-green-500 transition-colors" title="عرض الصفحة">
