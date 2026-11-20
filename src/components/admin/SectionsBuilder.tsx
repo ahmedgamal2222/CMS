@@ -7,7 +7,7 @@ import {
   Plus, Trash2, ChevronUp, ChevronDown, Edit2, Eye, EyeOff,
   Image as ImageIcon, Type, Star, Users, Phone, LayoutGrid,
   MessageSquare, Award, TrendingUp, Sliders, X, Check, GripVertical,
-  Sparkles, FolderOpen, Play, Layers
+  Sparkles, FolderOpen, Play, Layers, Monitor, Tablet, Smartphone
 } from 'lucide-react';
 import { MediaPicker } from './MediaPicker';
 import { TemplateGallery } from './TemplateGallery';
@@ -426,7 +426,7 @@ function AddSectionModal({ onClose, onAdd, saving }: {
     <ClientPortal>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" dir="rtl">
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
           style={{ background: 'var(--color-surface)' }}>
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
@@ -447,7 +447,7 @@ function AddSectionModal({ onClose, onAdd, saving }: {
             </button>
           </div>
           {/* Section type grid */}
-          <div className="overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-5 pb-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {SECTION_TYPES.map(st => (
                 <button
@@ -579,6 +579,7 @@ export function SectionsBuilder({ pageId }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const load = async () => {
     setLoading(true);
@@ -705,55 +706,103 @@ export function SectionsBuilder({ pageId }: Props) {
         />
       )}
 
-      {/* Live Preview */}
+      {/* Live Preview + Device Frames */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 flex flex-col" dir="rtl" style={{ background: 'rgba(0,0,0,0.55)' }}>
-          <div className="flex items-center justify-between px-4 py-3 text-white flex-shrink-0"
+        <div className="fixed inset-0 z-50 flex flex-col" dir="rtl" style={{ background: 'rgba(2,6,23,0.88)' }}>
+          <div className="flex items-center justify-between flex-wrap gap-2 px-4 py-3 text-white flex-shrink-0"
             style={{ background: '#0f172a' }}>
             <div className="flex items-center gap-2 text-sm font-semibold">
               <Eye className="w-4 h-4" /> معاينة مباشرة — {sections.length} أقسام
             </div>
+
+            {/* Device switcher */}
+            <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              {([
+                { key: 'desktop' as const, icon: Monitor, label: 'سطح المكتب' },
+                { key: 'tablet' as const, icon: Tablet, label: 'تابلت' },
+                { key: 'mobile' as const, icon: Smartphone, label: 'موبايل' },
+              ]).map(d => (
+                <button key={d.key} onClick={() => setPreviewDevice(d.key)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{
+                    background: previewDevice === d.key ? 'var(--color-primary)' : 'transparent',
+                    color: previewDevice === d.key ? '#fff' : 'rgba(255,255,255,0.72)',
+                  }}>
+                  <d.icon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{d.label}</span>
+                </button>
+              ))}
+            </div>
+
             <button onClick={() => setShowPreview(false)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: 'var(--color-primary)' }}>
               <X className="w-4 h-4" /> إغلاق
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto my-4 rounded-2xl overflow-hidden shadow-2xl"
-              style={{ maxWidth: 1100, background: 'var(--color-background, #fff)' }}>
-              <SectionsPreview sections={sections} />
+
+          <div className="flex-1 overflow-auto py-6 px-3">
+            <div className="mx-auto transition-all duration-300"
+              style={{
+                width: previewDevice === 'mobile' ? 414 : previewDevice === 'tablet' ? 834 : '100%',
+                maxWidth: 1100,
+              }}>
+              <div className="mx-auto rounded-[26px] shadow-2xl"
+                style={{
+                  background: 'var(--color-background, #fff)',
+                  border: previewDevice === 'desktop' ? 'none' : '10px solid #111827',
+                  overflow: 'hidden',
+                }}>
+                {/* شريط الجهاز العلوي */}
+                {previewDevice !== 'desktop' && (
+                  <div className="flex items-center justify-center py-1.5" style={{ background: '#111827' }}>
+                    <span className="w-16 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.35)' }} />
+                  </div>
+                )}
+                <div style={{
+                  maxHeight: previewDevice === 'desktop' ? 'none' : '68vh',
+                  overflowY: previewDevice === 'desktop' ? 'visible' : 'auto',
+                }}>
+                  <SectionsPreview sections={sections} />
+                </div>
+              </div>
+              <p className="text-center text-xs text-white/50 mt-3">
+                {previewDevice === 'mobile' ? 'عرض الموبايل 414px' : previewDevice === 'tablet' ? 'عرض التابلت 834px' : 'سطح المكتب — عرض كامل'}
+              </p>
             </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="space-y-3">
         <div>
           <h3 className="font-semibold" style={{ color: 'var(--color-text)' }}>أقسام الصفحة</h3>
           <p className="text-xs text-gray-400 mt-0.5">{sections.length} {sections.length === 1 ? 'قسم' : 'أقسام'}</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        {/* شريط الأدوات — عرض كامل حتى لا تُقتطع الأزرار */}
+        <div className="w-full flex flex-wrap items-center gap-2 p-2 rounded-2xl border box-border"
+          style={{ borderColor: 'rgba(0,0,0,0.08)', background: 'var(--color-surface)' }}>
           <button
             onClick={() => setShowTemplates(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl text-sm font-semibold border-2 whitespace-nowrap shrink-0 box-border hover:bg-gray-50 transition-colors"
             style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
-            <Sparkles className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            <Sparkles className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
             قوالب جاهزة
           </button>
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl text-sm font-semibold border-2 whitespace-nowrap shrink-0 box-border hover:bg-gray-50 transition-colors"
             style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
-            <Eye className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            <Eye className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
             معاينة مباشرة
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl text-white text-sm font-semibold whitespace-nowrap shrink-0 box-border hover:opacity-90 transition-opacity shadow-sm"
             style={{ background: 'var(--color-primary)' }}>
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             إضافة قسم
           </button>
         </div>
@@ -771,18 +820,20 @@ export function SectionsBuilder({ pageId }: Props) {
             <p className="font-semibold" style={{ color: 'var(--color-text)' }}>لا توجد أقسام بعد</p>
             <p className="text-sm text-gray-400 mt-1">ابدأ ببناء صفحتك بإضافة أول قسم</p>
           </div>
-          <button onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: 'var(--color-primary)' }}>
-            <Sparkles className="w-4 h-4" />
-            أضف أول قسم
-          </button>
-          <button onClick={() => setShowTemplates(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors mr-2"
-            style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
-            <Layers className="w-4 h-4" />
-            أو ابدأ بقالب جاهز
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <button onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 min-h-[44px] rounded-xl text-white text-sm font-semibold whitespace-nowrap box-border hover:opacity-90 transition-opacity"
+              style={{ background: 'var(--color-primary)' }}>
+              <Sparkles className="w-4 h-4 shrink-0" />
+              أضف أول قسم
+            </button>
+            <button onClick={() => setShowTemplates(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 min-h-[44px] rounded-xl text-sm font-semibold border-2 whitespace-nowrap box-border hover:bg-gray-50 transition-colors"
+              style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+              <Layers className="w-4 h-4 shrink-0" />
+              أو ابدأ بقالب جاهز
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-2.5">

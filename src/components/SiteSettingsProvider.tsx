@@ -37,6 +37,10 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
         if (raw.color_background) root.style.setProperty('--color-background', raw.color_background);
         if (raw.color_text)       root.style.setProperty('--color-text', raw.color_text);
         if (raw.color_surface)    root.style.setProperty('--color-surface', raw.color_surface);
+        if (raw.color_header_bg)   root.style.setProperty('--header-bg', raw.color_header_bg);
+        if (raw.color_header_text) root.style.setProperty('--header-text', raw.color_header_text);
+        if (raw.color_footer_bg)   root.style.setProperty('--footer-bg', raw.color_footer_bg);
+        if (raw.color_footer_text) root.style.setProperty('--footer-text', raw.color_footer_text);
         if (raw.font_heading)     root.style.setProperty('--font-heading', `'${raw.font_heading}', sans-serif`);
         if (raw.font_body)        root.style.setProperty('--font-body', `'${raw.font_body}', sans-serif`);
 

@@ -72,7 +72,7 @@ export default function HomePage() {
   return (
     <div dir="rtl" style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
       <PublicNavbar />
-      <main>
+      <main className="pt-16">
         {sections.map((section) => (
           <LandingSection key={section.id} section={section} />
         ))}

@@ -110,7 +110,7 @@ export function TemplateGallery({ pageId, onApplied, onClose, existingCount = 0 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" dir="rtl">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-3xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{ background: 'var(--color-surface)' }}>
         <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
           style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
@@ -129,7 +129,7 @@ export function TemplateGallery({ pageId, onApplied, onClose, existingCount = 0 
           </button>
         </div>
 
-        <div className="overflow-y-auto p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 pb-8 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
           {TEMPLATES.map(tpl => {
             const isApplying = applying === tpl.key;
             return (

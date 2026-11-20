@@ -84,6 +84,10 @@ export interface SiteSettingsData {
   color_background: string;
   color_text: string;
   color_surface: string;
+  color_header_bg: string;
+  color_header_text: string;
+  color_footer_bg: string;
+  color_footer_text: string;
   font_heading: string;
   font_body: string;
   social_facebook: string;
@@ -119,6 +123,10 @@ const defaultSiteSettings: SiteSettingsData = {
   color_background: '#ffffff',
   color_text: '#111827',
   color_surface: '#f9fafb',
+  color_header_bg: '#ffffff',
+  color_header_text: '#111827',
+  color_footer_bg: '#0f172a',
+  color_footer_text: '#e5e7eb',
   font_heading: 'Cairo',
   font_body: 'Tajawal',
   social_facebook: '',

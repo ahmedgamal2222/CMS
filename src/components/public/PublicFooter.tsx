@@ -35,7 +35,7 @@ export function PublicFooter() {
 
   return (
     <footer className="pt-12 pb-6 px-6 border-t"
-      style={{ borderColor: 'rgba(0,0,0,0.08)', background: 'var(--color-surface)', color: 'var(--color-text)' }}>
+      style={{ borderColor: 'rgba(0,0,0,0.08)', background: 'var(--footer-bg, var(--color-surface))', color: 'var(--footer-text, var(--color-text))' }}>
       <div className="max-w-6xl mx-auto">
 
         {/* Top section */}

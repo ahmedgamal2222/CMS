@@ -46,9 +46,11 @@ export function PublicNavbar() {
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-lg' : ''}`}
       style={{
-        background: scrolled ? 'var(--color-background)' : 'transparent',
+        background: 'var(--header-bg, var(--color-background))',
+        color: 'var(--header-text, var(--color-text))',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(0,0,0,0.04)',
+        boxShadow: scrolled ? '0 6px 24px rgba(0,0,0,0.08)' : 'none',
       }}>
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
         {/* Logo + Name */}
@@ -63,7 +65,7 @@ export function PublicNavbar() {
           ) : null}
           {showName && settings.site_name && (
             <span className="font-heading font-bold text-lg hidden sm:block"
-              style={{ color: scrolled ? 'var(--color-text)' : '#fff' }}>
+              style={{ color: 'var(--header-text, var(--color-text))' }}>
               {settings.site_name as string}
             </span>
           )}
@@ -78,8 +80,8 @@ export function PublicNavbar() {
                   href={getHref(item)}
                   target={item.target === '_blank' ? '_blank' : undefined}
                   rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
-                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
-                  style={{ color: scrolled ? 'var(--color-text)' : 'rgba(255,255,255,0.9)' }}>
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-70"
+                  style={{ color: 'var(--header-text, var(--color-text))' }}>
                   {item.label}
                 </a>
                 {/* Dropdown for children */}
@@ -108,7 +110,7 @@ export function PublicNavbar() {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 rounded-lg transition-colors"
-              style={{ color: scrolled ? 'var(--color-text)' : '#fff' }}>
+              style={{ color: 'var(--header-text, var(--color-text))' }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileOpen
                   ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -122,7 +124,7 @@ export function PublicNavbar() {
       {/* Mobile menu */}
       {mobileOpen && navItems.length > 0 && (
         <div className="md:hidden border-t px-4 py-3 space-y-1"
-          style={{ background: 'var(--color-background)', borderColor: 'rgba(0,0,0,0.08)' }}>
+          style={{ background: 'var(--header-bg, var(--color-background))', borderColor: 'rgba(0,0,0,0.08)' }}>
           {navItems.map((item) => (
             <a key={item.id} href={getHref(item)}
               target={item.target === '_blank' ? '_blank' : undefined}

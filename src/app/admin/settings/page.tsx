@@ -290,6 +290,18 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* Header & Footer colors */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 opacity-70">الهيدر والفوتر</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <ColorField label="خلفية الهيدر" value={settings.color_header_bg || '#ffffff'} onChange={v => update('color_header_bg', v)} />
+                  <ColorField label="نص الهيدر" value={settings.color_header_text || '#111827'} onChange={v => update('color_header_text', v)} />
+                  <ColorField label="خلفية الفوتر" value={settings.color_footer_bg || '#0f172a'} onChange={v => update('color_footer_bg', v)} />
+                  <ColorField label="نص الفوتر" value={settings.color_footer_text || '#e5e7eb'} onChange={v => update('color_footer_text', v)} />
+                </div>
+                <p className="text-xs text-gray-400 mt-2">تُطبَّق هذه الألوان على هيدر وفوتر الموقع العام فور الحفظ.</p>
+              </div>
+
               {/* Color presets */}
               <div>
                 <h3 className="text-sm font-semibold mb-3 opacity-70">ألوان جاهزة</h3>
