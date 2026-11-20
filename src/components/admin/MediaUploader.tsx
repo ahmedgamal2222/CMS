@@ -53,10 +53,7 @@ export function MediaUploader({ folder = '/uploads', onUploaded, multiple = true
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple,
-    accept: {
-      'image/*': [], 'video/*': [], 'audio/*': [],
-      'application/pdf': [], 'application/msword': [],
-    },
+    maxSize: 100 * 1024 * 1024,
   });
 
   const remove = (i: number) => setFiles(prev => prev.filter((_, idx) => idx !== i));
@@ -73,7 +70,7 @@ export function MediaUploader({ folder = '/uploads', onUploaded, multiple = true
         <p className="text-sm" style={{ color: 'var(--color-text)' }}>
           {isDragActive ? 'أفلت الملفات هنا' : 'اسحب الملفات هنا أو اضغط للاختيار'}
         </p>
-        <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF, MP4, PDF — حتى 50 ميجابايت</p>
+        <p className="text-xs text-gray-400 mt-1">أي نوع ملف: صور، فيديو، PDF، Word، ZIP… — حتى 100 ميجابايت</p>
       </div>
 
       {files.length > 0 && (

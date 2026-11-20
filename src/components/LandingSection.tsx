@@ -342,6 +342,65 @@ function ContactSection({ content }: { content: any }) {
   );
 }
 
+// ─── Video ────────────────────────────────────────────────────────────────────
+function youtubeId(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
+  return m ? m[1] : null;
+}
+
+function vimeoId(url: string): string | null {
+  const m = (url || '').match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  return m ? m[1] : null;
+}
+
+function VideoSection({ content }: { content: any }) {
+  const url: string = content?.video_url || '';
+  const yt = youtubeId(url);
+  const vm = vimeoId(url);
+  const isFile = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i.test(url);
+
+  return (
+    <section className="py-20 px-6" style={{ background: 'var(--color-surface)' }}>
+      <div className="max-w-4xl mx-auto">
+        <SectionHeader title={content?.title} subtitle={content?.subtitle} />
+        {url ? (
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl"
+            style={{ aspectRatio: '16 / 9', background: '#000' }}>
+            {yt ? (
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${yt}?rel=0&modestbranding=1&playsinline=1`}
+                className="absolute inset-0 w-full h-full" allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+            ) : vm ? (
+              <iframe
+                src={`https://player.vimeo.com/video/${vm}?title=0&byline=0`}
+                className="absolute inset-0 w-full h-full" allowFullScreen
+                allow="autoplay; fullscreen; picture-in-picture" />
+            ) : isFile ? (
+              <video src={url} controls poster={content?.video_thumbnail || undefined}
+                className="absolute inset-0 w-full h-full object-contain" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <a href={url} target="_blank" rel="noopener noreferrer"
+                  className="px-6 py-3 rounded-xl text-white text-sm font-semibold"
+                  style={{ background: 'var(--color-primary)' }}>
+                  مشاهدة الفيديو
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-3xl border-2 border-dashed flex items-center justify-center py-20 text-sm opacity-50"
+            style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+            لم يتم إضافة فيديو لهذا القسم بعد
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ─── Custom HTML ──────────────────────────────────────────────────────────────
 function CustomSection({ content }: { content: any }) {
   if (!content?.html) return null;
@@ -406,6 +465,7 @@ export function LandingSection({ section }: { section: Section }) {
     case 'stats':        return <StatsSection content={section.content} />;
     case 'cta':          return <CTASection content={section.content} />;
     case 'gallery':      return <GallerySection content={section.content} />;
+    case 'video':        return <VideoSection content={section.content} />;
     case 'contact':      return <ContactSection content={section.content} />;
     case 'custom':       return <CustomSection content={section.content} />;
     default:             return null;

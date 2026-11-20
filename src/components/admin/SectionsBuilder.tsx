@@ -7,13 +7,16 @@ import {
   Plus, Trash2, ChevronUp, ChevronDown, Edit2, Eye, EyeOff,
   Image as ImageIcon, Type, Star, Users, Phone, LayoutGrid,
   MessageSquare, Award, TrendingUp, Sliders, X, Check, GripVertical,
-  Sparkles, FolderOpen
+  Sparkles, FolderOpen, Play, Layers
 } from 'lucide-react';
 import { MediaPicker } from './MediaPicker';
+import { TemplateGallery } from './TemplateGallery';
+import { SectionsPreview } from './SectionPreview';
+import { VideoField } from './VideoField';
 
 export type SectionType =
   | 'hero' | 'slider' | 'features' | 'about' | 'services'
-  | 'testimonials' | 'gallery' | 'contact' | 'cta' | 'stats' | 'custom';
+  | 'testimonials' | 'gallery' | 'contact' | 'cta' | 'stats' | 'video' | 'custom';
 
 interface Section {
   id: string;
@@ -38,6 +41,7 @@ const SECTION_TYPES: { type: SectionType; label: string; icon: any; description:
   { type: 'services',     label: 'Services / خدمات',       icon: LayoutGrid,   description: 'عرض قائمة الخدمات',                        color: '#3b82f6' },
   { type: 'testimonials', label: 'Testimonials / آراء',    icon: MessageSquare,description: 'آراء وتقييمات العملاء',                     color: '#ec4899' },
   { type: 'gallery',      label: 'Gallery / معرض',         icon: ImageIcon,    description: 'معرض صور',                                  color: '#14b8a6' },
+  { type: 'video',        label: 'Video / فيديو',          icon: Play,         description: 'فيديو يوتيوب أو مرفوع من الجهاز',           color: '#ef4444' },
   { type: 'stats',        label: 'Stats / إحصائيات',       icon: TrendingUp,   description: 'أرقام وإحصائيات مميزة',                    color: '#f97316' },
   { type: 'cta',          label: 'CTA / دعوة للعمل',       icon: Award,        description: 'قسم دعوة للعمل مع زر',                     color: '#a855f7' },
   { type: 'contact',      label: 'Contact / تواصل',        icon: Phone,        description: 'نموذج التواصل ومعلومات الاتصال',            color: '#ef4444' },
@@ -100,6 +104,8 @@ function defaultContent(type: SectionType): any {
       return { title: 'هل أنت مستعد للبدء؟', subtitle: 'تواصل معنا اليوم واحصل على استشارة مجانية', button_text: 'تواصل الآن', button_url: '#contact', button2_text: 'اعرف أكثر', button2_url: '#about', background: 'primary' };
     case 'contact':
       return { title: 'تواصل معنا', subtitle: 'نحن هنا لمساعدتك', show_form: true, address: '', phone: '', email: '', map_embed: '' };
+    case 'video':
+      return { title: 'شاهد الفيديو', subtitle: '', video_url: '', video_type: 'youtube', video_thumbnail: '' };
     case 'custom':
       return { html: '<p>أضف محتواك المخصص هنا...</p>' };
     default:
@@ -513,7 +519,34 @@ function EditDrawer({ section, content, onChange, onSave, onClose, saving }: {
           </div>
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto p-5">
-            <GenericEditor content={content} onChange={onChange} type={section.type} />
+            {section.type === 'video' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">عنوان القسم</label>
+                  <input type="text" value={(content || {}).title || ''}
+                    onChange={e => onChange({ ...(content || {}), title: e.target.value })}
+                    placeholder="شاهد الفيديو"
+                    className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">وصف فرعي (اختياري)</label>
+                  <input type="text" value={(content || {}).subtitle || ''}
+                    onChange={e => onChange({ ...(content || {}), subtitle: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
+                </div>
+                <VideoField
+                  label="مصدر الفيديو"
+                  value={{
+                    video_url: (content || {}).video_url || '',
+                    video_type: (content || {}).video_type || 'youtube',
+                    video_thumbnail: (content || {}).video_thumbnail,
+                  }}
+                  onChange={v => onChange({ ...(content || {}), ...v })}
+                />
+              </div>
+            ) : (
+              <GenericEditor content={content} onChange={onChange} type={section.type} />
+            )}
           </div>
           {/* Footer */}
           <div className="flex gap-2 px-5 py-4 border-t flex-shrink-0"
@@ -544,6 +577,8 @@ export function SectionsBuilder({ pageId }: Props) {
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [editContent, setEditContent] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -660,19 +695,68 @@ export function SectionsBuilder({ pageId }: Props) {
         />
       )}
 
+      {/* Template Gallery */}
+      {showTemplates && (
+        <TemplateGallery
+          pageId={pageId}
+          existingCount={sections.length}
+          onApplied={load}
+          onClose={() => setShowTemplates(false)}
+        />
+      )}
+
+      {/* Live Preview */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex flex-col" dir="rtl" style={{ background: 'rgba(0,0,0,0.55)' }}>
+          <div className="flex items-center justify-between px-4 py-3 text-white flex-shrink-0"
+            style={{ background: '#0f172a' }}>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Eye className="w-4 h-4" /> معاينة مباشرة — {sections.length} أقسام
+            </div>
+            <button onClick={() => setShowPreview(false)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{ background: 'var(--color-primary)' }}>
+              <X className="w-4 h-4" /> إغلاق
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <div className="mx-auto my-4 rounded-2xl overflow-hidden shadow-2xl"
+              style={{ maxWidth: 1100, background: 'var(--color-background, #fff)' }}>
+              <SectionsPreview sections={sections} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="font-semibold" style={{ color: 'var(--color-text)' }}>أقسام الصفحة</h3>
           <p className="text-xs text-gray-400 mt-0.5">{sections.length} {sections.length === 1 ? 'قسم' : 'أقسام'}</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
-          style={{ background: 'var(--color-primary)' }}>
-          <Plus className="w-4 h-4" />
-          إضافة قسم
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setShowTemplates(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
+            style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+            <Sparkles className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            قوالب جاهزة
+          </button>
+          <button
+            onClick={() => setShowPreview(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
+            style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+            <Eye className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
+            معاينة مباشرة
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+            style={{ background: 'var(--color-primary)' }}>
+            <Plus className="w-4 h-4" />
+            إضافة قسم
+          </button>
+        </div>
       </div>
 
       {/* Sections list */}
@@ -692,6 +776,12 @@ export function SectionsBuilder({ pageId }: Props) {
             style={{ background: 'var(--color-primary)' }}>
             <Sparkles className="w-4 h-4" />
             أضف أول قسم
+          </button>
+          <button onClick={() => setShowTemplates(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 hover:bg-gray-50 transition-colors mr-2"
+            style={{ borderColor: 'rgba(0,0,0,0.12)', color: 'var(--color-text)' }}>
+            <Layers className="w-4 h-4" />
+            أو ابدأ بقالب جاهز
           </button>
         </div>
       ) : (

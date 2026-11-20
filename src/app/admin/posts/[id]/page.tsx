@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { postsApi, taxonomyApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { RichEditor } from '@/components/admin/RichEditor';
-import { Save, ArrowRight } from 'lucide-react';
+import { VideoField } from '@/components/admin/VideoField';
+import { MediaPicker } from '@/components/admin/MediaPicker';
+import { Save, ArrowRight, ImagePlus } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PostEditor({ params }: { params: { id: string } }) {
@@ -13,12 +15,15 @@ export default function PostEditor({ params }: { params: { id: string } }) {
   const isNew = params.id === 'new';
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [form, setForm] = useState({
     title: '', slug: '', content: '', excerpt: '', featured_image: '',
     meta_title: '', meta_description: '', meta_keywords: '',
     status: 'draft', category_id: '', tags: [] as string[],
+    video_url: '', video_type: 'youtube' as 'youtube' | 'vimeo' | 'file' | 'other',
+    video_thumbnail: '', is_featured: 0 as number,
   });
 
   useEffect(() => {
@@ -33,6 +38,8 @@ export default function PostEditor({ params }: { params: { id: string } }) {
           meta_description: p.meta_description || '', meta_keywords: p.meta_keywords || '',
           status: p.status, category_id: p.category_id || '',
           tags: (p.tags || []).map((t: any) => t.id),
+          video_url: p.video_url || '', video_type: p.video_type || 'youtube',
+          video_thumbnail: p.video_thumbnail || '', is_featured: p.is_featured || 0,
         });
         setLoading(false);
       });
@@ -173,13 +180,48 @@ export default function PostEditor({ params }: { params: { id: string } }) {
 
           <div className="cms-card space-y-3">
             <h3 className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>الصورة المميزة</h3>
-            <input type="url" placeholder="رابط الصورة..." value={form.featured_image}
+            {form.featured_image ? (
+              <div className="space-y-2">
+                <div className="relative group">
+                  <img src={form.featured_image} alt="" className="w-full rounded-lg object-cover h-36" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                    <button type="button" onClick={() => setShowImagePicker(true)}
+                      className="px-3 py-1.5 rounded-lg bg-white text-xs font-semibold">تغيير</button>
+                    <button type="button" onClick={() => setForm(p => ({ ...p, featured_image: '' }))}
+                      className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold">إزالة</button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setShowImagePicker(true)}
+                className="w-full flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed rounded-xl hover:border-gray-400 transition-colors"
+                style={{ borderColor: 'rgba(0,0,0,0.15)' }}>
+                <ImagePlus className="w-6 h-6 text-gray-400" />
+                <span className="text-sm" style={{ color: 'var(--color-text)' }}>ارفع صورة من جهازك</span>
+                <span className="text-xs text-gray-400">أو اختر من مكتبة الوسائط</span>
+              </button>
+            )}
+            <input type="url" placeholder="أو الصق رابط الصورة..." value={form.featured_image}
               onChange={(e) => setForm(p => ({ ...p, featured_image: e.target.value }))}
               className="w-full px-3 py-2 border rounded-lg text-sm" style={{ borderColor: 'rgba(0,0,0,0.15)' }} />
-            {form.featured_image && (
-              <img src={form.featured_image} alt="" className="w-full rounded-lg object-cover h-32" />
-            )}
           </div>
+
+          {/* فيديو المقال (يوتيوب / فيميو / رفع من الجهاز) */}
+          <div className="cms-card space-y-3">
+            <VideoField
+              label="فيديو المقال"
+              value={{ video_url: form.video_url, video_type: form.video_type, video_thumbnail: form.video_thumbnail }}
+              onChange={(v) => setForm(p => ({ ...p, ...v }))}
+            />
+          </div>
+
+          {showImagePicker && (
+            <MediaPicker
+              title="اختر الصورة المميزة"
+              onClose={() => setShowImagePicker(false)}
+              onSelect={(urlValue: string) => { setForm(p => ({ ...p, featured_image: urlValue })); setShowImagePicker(false); }}
+            />
+          )}
 
           <div className="cms-card space-y-3">
             <h3 className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>SEO</h3>

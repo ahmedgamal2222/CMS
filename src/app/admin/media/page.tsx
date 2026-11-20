@@ -121,6 +121,18 @@ export default function MediaPage() {
               {item.mime_type.startsWith('image/') ? (
                 <img src={item.file_url} alt={item.alt_text || item.name}
                   className="w-full aspect-square object-cover" />
+              ) : item.mime_type.startsWith('video/') ? (
+                <div className="relative w-full aspect-square bg-black">
+                  <video src={item.file_url} muted playsInline preload="metadata"
+                    className="w-full h-full object-cover opacity-90" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="w-9 h-9 rounded-full bg-white/90 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" style={{ color: 'var(--color-primary)' }}>
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
               ) : (
                 <div className="w-full aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                   <MediaTypeIcon mime={item.mime_type} />
